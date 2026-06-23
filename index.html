@@ -235,64 +235,37 @@ function generateTextPortrait(){
     );
 
     const pixels = imageData.data;
+
     let minBrightness = 255;
-let maxBrightness = 0;
+    let maxBrightness = 0;
 
-for(let i = 0; i < pixels.length; i += 4){
+    for(let i = 0; i < pixels.length; i += 4){
 
-    const brightness = 
-    (
-        pixels[i] +
-        pixels[i+1] +
-        pixels[i+2]
-    ) / 3;
+        const brightness =
+        (
+            pixels[i] +
+            pixels[i+1] +
+            pixels[i+2]
+        ) / 3;
 
-    if(brightness < minBrightness){
-        minBrightness = brightness;
+        if(brightness < minBrightness){
+            minBrightness = brightness;
+        }
+
+        if(brightness > maxBrightness){
+            maxBrightness = brightness;
+        }
+
     }
 
-    if(brightness > maxBrightness){
-        maxBrightness = brightness;
-    }
-
-    let edgeBoost = 0;
-
-if(
-    x > 0 &&
-    y > 0 &&
-    x < canvas.width-1 &&
-    y < canvas.height-1
-){
-
-    const left =
-    (
-        pixels[((y * canvas.width + (x-1))*4)] +
-        pixels[((y * canvas.width + (x-1))*4)+1] +
-        pixels[((y * canvas.width + (x-1))*4)+2]
-    ) / 3;
-
-    const right =
-    (
-        pixels[((y * canvas.width + (x+1))*4)] +
-        pixels[((y * canvas.width + (x+1))*4)+1] +
-        pixels[((y * canvas.width + (x+1))*4)+2]
-    ) / 3;
-
-    edgeBoost =
-    Math.abs(right-left);
-
-}
-    brightness += edgeBoost * 0.4;
-
-}
-
-    let result = ""; let textIndex = 0;
+    let result = "";
+    let textIndex = 0;
 
     for(
-    let y = 0;
-    y < canvas.height;
-    y += 2
-){
+        let y = 0;
+        y < canvas.height;
+        y += 2
+    ){
 
         for(
             let x = 0;
@@ -307,39 +280,36 @@ if(
             const g = pixels[index + 1];
             const b = pixels[index + 2];
 
-            /*
-                Convertimos RGB
-                a brillo.
-            */
-
             let brightness =
-(r + g + b) / 3;
+            (r + g + b) / 3;
 
-brightness =
-(
-    brightness - minBrightness
-)
-/
-(
-    maxBrightness - minBrightness
-);
+            const range =
+            Math.max(
+                1,
+                maxBrightness - minBrightness
+            );
 
-brightness *= 255;
+            brightness =
+            (
+                brightness - minBrightness
+            ) / range;
+
+            brightness *= 255;
 
             if(brightness > 18){
 
-    result +=
-    CUSTOM_TEXT[
-        textIndex++
-        %
-        CUSTOM_TEXT.length
-    ];
+                result +=
+                CUSTOM_TEXT[
+                    textIndex++
+                    %
+                    CUSTOM_TEXT.length
+                ];
 
-}else{
+            }else{
 
-    result += " ";
+                result += " ";
 
-}
+            }
 
         }
 
