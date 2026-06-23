@@ -34,6 +34,7 @@ body{
     align-items:center;
 
     min-height:100vh;
+    background:#000;
 }
 
 
@@ -65,7 +66,11 @@ canvas{
 
     white-space:pre;
 
-    font-size:4px;
+    font-size:clamp(
+2px,
+0.42vw,
+5px
+);
 
     line-height:4px;
 
@@ -88,6 +93,8 @@ canvas{
     0 0 5px #c084fc,
     0 0 10px #9333ea,
     0 0 20px #7e22ce;
+
+    background:#000;
 }
 
 </style>
@@ -228,6 +235,56 @@ function generateTextPortrait(){
     );
 
     const pixels = imageData.data;
+    let minBrightness = 255;
+let maxBrightness = 0;
+
+for(let i = 0; i < pixels.length; i += 4){
+
+    const brightness = 
+    (
+        pixels[i] +
+        pixels[i+1] +
+        pixels[i+2]
+    ) / 3;
+
+    if(brightness < minBrightness){
+        minBrightness = brightness;
+    }
+
+    if(brightness > maxBrightness){
+        maxBrightness = brightness;
+    }
+
+    let edgeBoost = 0;
+
+if(
+    x > 0 &&
+    y > 0 &&
+    x < canvas.width-1 &&
+    y < canvas.height-1
+){
+
+    const left =
+    (
+        pixels[((y * canvas.width + (x-1))*4)] +
+        pixels[((y * canvas.width + (x-1))*4)+1] +
+        pixels[((y * canvas.width + (x-1))*4)+2]
+    ) / 3;
+
+    const right =
+    (
+        pixels[((y * canvas.width + (x+1))*4)] +
+        pixels[((y * canvas.width + (x+1))*4)+1] +
+        pixels[((y * canvas.width + (x+1))*4)+2]
+    ) / 3;
+
+    edgeBoost =
+    Math.abs(right-left);
+
+}
+    brightness += edgeBoost * 0.4;
+
+}
 
     let result = ""; let textIndex = 0;
 
@@ -255,15 +312,21 @@ function generateTextPortrait(){
                 a brillo.
             */
 
-            const brightness =
-            (r + g + b) / 3;
+            let brightness =
+(r + g + b) / 3;
 
-            /*
-                Elegimos un carácter
-                según la oscuridad.
-            */
+brightness =
+(
+    brightness - minBrightness
+)
+/
+(
+    maxBrightness - minBrightness
+);
 
-            if(brightness > 30){
+brightness *= 255;
+
+            if(brightness > 18){
 
     result +=
     CUSTOM_TEXT[
