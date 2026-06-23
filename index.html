@@ -1,47 +1,161 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Advanced Text Portrait Effect</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Text Portrait Effect</title>
+
 <style>
-html,body{
-margin:0;height:100%;overflow:hidden;background:#000;
-font-family:Consolas,monospace;
+
+/* ==========================================
+   CONFIGURACIÓN GENERAL
+   ========================================== */
+
+/*
+    Quitamos márgenes por defecto
+    y hacemos que todo ocupe la pantalla.
+*/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
-#ui{
-position:fixed;top:15px;left:15px;z-index:20;
+
+body{
+    background:black;
+    color:white;
+    font-family:monospace;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    min-height:100vh;
 }
-label{
-cursor:pointer;
-padding:10px 14px;
-border-radius:10px;
-background:#111;
-border:1px solid #7e22ce;
-color:#ddd;
+
+
+/* ==========================================
+   BOTÓN PARA SUBIR IMAGEN
+   ========================================== */
+
+.controls{
+    margin-top:20px;
+    margin-bottom:20px;
 }
-input{display:none}
-canvas{display:block;width:100vw;height:100vh}
+
+/*
+   Canvas oculto.
+   Lo usamos para leer los píxeles
+   de la imagen cargada.
+*/
+
+canvas{
+    display:none;
+}
+
+
+/* ==========================================
+   CONTENEDOR DEL TEXTO
+   ========================================== */
+
+#portrait{
+
+    white-space:pre;
+
+    font-size:4px;
+
+    line-height:4px;
+
+    letter-spacing:0px;
+
+    font-weight:normal;
+
+    overflow:auto;
+
+    max-width:100vw;
+
+    max-height:100vh;
+
+    padding:15px;
+
+    color:#d8b4fe;
+
+    text-shadow:
+    0 0 2px #d8b4fe,
+    0 0 5px #c084fc,
+    0 0 10px #9333ea,
+    0 0 20px #7e22ce;
+}
+
 </style>
+
 </head>
+
 <body>
 
-<div id="ui">
-<label>Subir imagen
-<input id="file" type="file" accept="image/png,image/jpeg">
-</label>
+<!-- ==========================================
+     INPUT DE IMAGEN
+     ========================================== -->
+
+<div class="controls">
+
+    <!--
+         Aquí el usuario selecciona una imagen.
+    -->
+
+    <input type="file" id="imageInput" accept="image/*">
+
 </div>
 
-<canvas id="c"></canvas>
+
+<!--
+     Canvas oculto para procesar la imagen
+-->
+
+<canvas id="canvas"></canvas>
+
+
+<!--
+     Aquí aparecerá el retrato generado
+-->
+
+<pre id="portrait" class="holographic"></pre>
+
 
 <script>
+
+/* ==========================================
+   ELEMENTOS DEL HTML
+   ========================================== */
+
+const imageInput = document.getElementById("imageInput");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const portrait = document.getElementById("portrait");
+
+
+/* ==========================================
+   CARACTERES DISPONIBLES
+   ========================================== */
+
 /*
-==================================================
-EDITA ESTE TEXTO LIBREMENTE.
-TODO EL RETRATO UTILIZA EXCLUSIVAMENTE ESTE TEXTO.
-==================================================
+   Más densidad = más detalle.
+
+   Los caracteres más "gruesos"
+   representan zonas oscuras.
+
+   Los espacios representan zonas claras.
 */
-const CUSTOM_TEXT=`Bienaventurado el que confía en el Señor y no se aparta de su camino, porque en Él hay salvación y esperanza eterna. El amor es paciente y bondadoso, no busca lo suyo, no se irrita, todo lo soporta y todo lo espera, porque el verdadero amor viene de Dios. Cree en el Señor Jesucristo y serás salvo, porque por gracia somos salvos mediante la fe, no por obras para que nadie se gloríe.
+
+/* ==================================================
+   TEXTO PERSONALIZADO
+================================================== */
+
+const CUSTOM_TEXT = `
+Bienaventurado el que confía en el Señor y no se aparta de su camino, porque en Él hay salvación y esperanza eterna. El amor es paciente y bondadoso, no busca lo suyo, no se irrita, todo lo soporta y todo lo espera, porque el verdadero amor viene de Dios. Cree en el Señor Jesucristo y serás salvo, porque por gracia somos salvos mediante la fe, no por obras para que nadie se gloríe.
 
 La paz de Dios que sobrepasa todo entendimiento guardará tu corazón y tus pensamientos en Cristo Jesús. No temas porque Yo estoy contigo, no desmayes porque Yo soy tu Dios que te esfuerzo. Todo lo puedo en Cristo que me fortalece, porque el Señor es mi luz y mi salvación, ¿de quién temeré?
 
@@ -51,174 +165,130 @@ El sabio teme al Señor y se aparta del mal, porque el principio de la sabidurí
 
 Porque Yo sé los planes que tengo para vosotros, planes de paz y no de mal, para daros un futuro y una esperanza. Los que esperan en el Señor renovarán sus fuerzas, correrán y no se cansarán, caminarán y no se fatigarán. Nada podrá separarnos del amor de Dios que es en Cristo Jesús Señor nuestro.
 
-Dios es amor, y el que permanece en amor permanece en Dios. Y Él enjugará toda lágrima de los ojos, y ya no habrá muerte, ni llanto, ni dolor. La palabra del Señor permanece para siempre y su verdad no tiene fin. `;
+Dios es amor, y el que permanece en amor permanece en Dios. Y Él enjugará toda lágrima de los ojos, y ya no habrá muerte, ni llanto, ni dolor. La palabra del Señor permanece para siempre y su verdad no tiene fin.
+`;
 
-const canvas=document.getElementById("c");
-const ctx=canvas.getContext("2d");
 
-let W,H;
-function resize(){
- W=canvas.width=innerWidth;
- H=canvas.height=innerHeight;
-}
-addEventListener("resize",resize);
-resize();
+/* ==========================================
+   AL CARGAR UNA IMAGEN
+   ========================================== */
 
-class Glyph{
- constructor(x,y,ch){
-   this.x=Math.random()*W;
-   this.y=Math.random()*H;
-   this.tx=x;
-   this.ty=y;
-   this.ch=ch;
- }
- update(){
-   this.x+=(this.tx-this.x)*0.05;
-   this.y+=(this.ty-this.y)*0.05;
- }
- draw(t){
-   const g=ctx.createLinearGradient(
-      this.x-10+Math.sin(t*0.001)*10,
-      this.y,
-      this.x+10,
-      this.y
-   );
-   g.addColorStop(0,"#e9d5ff");
-   g.addColorStop(.5,"#ffffff");
-   g.addColorStop(1,"#9333ea");
+imageInput.addEventListener("change", function(event){
 
-   ctx.fillStyle=g;
-   ctx.shadowColor="#a855f7";
-   ctx.shadowBlur=8;
-   ctx.fillText(this.ch,this.x,this.y);
- }
-}
+    const file = event.target.files[0];
 
-let glyphs=[];
+    if(!file) return;
 
-function buildPortrait(img){
- const off=document.createElement("canvas");
- const octx=off.getContext("2d");
+    const img = new Image();
 
- const max=320;
+    img.onload = function(){
 
- let iw=max;
- let ih=max*(img.height/img.width);
+        /*
+            Reducimos tamaño para
+            evitar millones de letras.
+        */
 
- if(ih>240){
-   ih=240;
-   iw=240*(img.width/img.height);
- }
+        const width = 450;
 
- off.width=iw;
- off.height=ih;
+        const height =
+        img.height * (width / img.width);
 
- octx.drawImage(img,0,0,iw,ih);
+        canvas.width = width;
+        canvas.height = height;
 
- const data=octx.getImageData(0,0,iw,ih).data;
+        ctx.drawImage(
+            img,
+            0,
+            0,
+            width,
+            height
+        );
 
- const spacing=Math.max(3,Math.floor(Math.min(iw,ih)/65));
+        generateTextPortrait();
 
- const targets=[];
+    }
 
- let idx=0;
+    img.src = URL.createObjectURL(file);
 
- const ox=(W-iw*3)/2;
- const oy=(H-ih*3)/2;
-
- for(let y=0;y<ih;y+=spacing){
-   for(let x=0;x<iw;x+=spacing){
-
-     const p=(y*iw+x)*4;
-
-     const r=data[p];
-     const g=data[p+1];
-     const b=data[p+2];
-
-     const lum=(r+g+b)/3;
-
-     if(lum>35){
-
-        targets.push({
-          x:ox+x*3,
-          y:oy+y*3,
-          ch:CUSTOM_TEXT[idx++ % CUSTOM_TEXT.length]
-        });
-
-     }
-   }
- }
-
- while(glyphs.length<targets.length){
-   glyphs.push(new Glyph(Math.random()*W,Math.random()*H,"A"));
- }
-
- glyphs.length=targets.length;
-
- for(let i=0;i<targets.length;i++){
-   glyphs[i].tx=targets[i].x;
-   glyphs[i].ty=targets[i].y;
-   glyphs[i].ch=targets[i].ch;
- }
-}
-
-/*
-=====================================
-RETRATO DEMO
-=====================================
-*/
-function createDemo(){
- const c=document.createElement("canvas");
- c.width=220;
- c.height=300;
- const x=c.getContext("2d");
-
- x.fillStyle="black";
- x.fillRect(0,0,c.width,c.height);
-
- const grad=x.createRadialGradient(110,90,5,110,120,90);
- grad.addColorStop(0,"white");
- grad.addColorStop(1,"black");
-
- x.fillStyle=grad;
- x.beginPath();
- x.arc(110,90,60,0,Math.PI*2);
- x.fill();
-
- x.fillRect(70,150,80,90);
-
- buildPortrait(c);
-}
-createDemo();
-
-document.getElementById("file").addEventListener("change",e=>{
- const f=e.target.files[0];
- if(!f) return;
-
- const img=new Image();
-
- img.onload=()=>buildPortrait(img);
-
- img.src=URL.createObjectURL(f);
 });
 
-ctx.textAlign="center";
-ctx.textBaseline="middle";
 
-function loop(t){
+/* ==========================================
+   GENERADOR DEL RETRATO
+   ========================================== */
 
- ctx.clearRect(0,0,W,H);
+function generateTextPortrait(){
 
- ctx.font="7px monospace";
+    const imageData =
+    ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
- for(const g of glyphs){
-   g.update();
-   g.draw(t);
- }
+    const pixels = imageData.data;
 
- requestAnimationFrame(loop);
+    let result = ""; let textIndex = 0;
+
+    for(
+    let y = 0;
+    y < canvas.height;
+    y += 2
+){
+
+        for(
+            let x = 0;
+            x < canvas.width;
+            x++
+        ){
+
+            const index =
+            (y * canvas.width + x) * 4;
+
+            const r = pixels[index];
+            const g = pixels[index + 1];
+            const b = pixels[index + 2];
+
+            /*
+                Convertimos RGB
+                a brillo.
+            */
+
+            const brightness =
+            (r + g + b) / 3;
+
+            /*
+                Elegimos un carácter
+                según la oscuridad.
+            */
+
+            if(brightness > 30){
+
+    result +=
+    CUSTOM_TEXT[
+        textIndex++
+        %
+        CUSTOM_TEXT.length
+    ];
+
+}else{
+
+    result += " ";
+
 }
-requestAnimationFrame(loop);
+
+        }
+
+        result += "\n";
+
+    }
+
+    portrait.textContent = result;
+
+}
+
 </script>
+
 </body>
 </html>
