@@ -62,39 +62,34 @@ canvas{
    CONTENEDOR DEL TEXTO
    ========================================== */
 
-#portrait{
+#portraitContainer{
 
-    white-space:pre;
+    position:fixed;
 
-    font-size:clamp(
-1.8px,
-0.42vw,
-5px
-);
+    inset:0;
 
-    line-height:1.8px;
+    display:flex;
 
-    letter-spacing:0px;
+    justify-content:center;
 
-    font-weight:normal;
+    align-items:center;
 
-    overflow:auto;
+    background:black;
 
-    max-width:100vw;
+}
 
-    max-height:100vh;
+#canvas{
 
-    padding:15px;
+    display:none;
 
-    color:#d8b4fe;
+}
 
-    text-shadow:
-    0 0 2px #d8b4fe,
-    0 0 5px #c084fc,
-    0 0 10px #9333ea,
-    0 0 20px #7e22ce;
+#portraitCanvas{
 
-    background:#000;
+    width:100vw;
+
+    height:100vh;
+
 }
 
 </style>
@@ -122,14 +117,13 @@ canvas{
      Canvas oculto para procesar la imagen
 -->
 
-<canvas id="canvas"></canvas>
+<div id="portraitContainer">
 
+    <canvas id="canvas"></canvas>
 
-<!--
-     Aquí aparecerá el retrato generado
--->
+    <canvas id="portraitCanvas"></canvas>
 
-<pre id="portrait" class="holographic"></pre>
+</div>  
 
 
 <script>
@@ -141,7 +135,28 @@ canvas{
 const imageInput = document.getElementById("imageInput");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-const portrait = document.getElementById("portrait");
+const portraitCanvas =
+document.getElementById("portraitCanvas");
+
+const pctx =
+portraitCanvas.getContext("2d");    
+
+function resizePortraitCanvas(){
+
+    portraitCanvas.width =
+    window.innerWidth;
+
+    portraitCanvas.height =
+    window.innerHeight;
+
+}
+
+resizePortraitCanvas();
+
+window.addEventListener(
+    "resize",
+    resizePortraitCanvas
+);
 
 
 /* ==========================================
@@ -162,31 +177,7 @@ const portrait = document.getElementById("portrait");
 ================================================== */
 
 const CUSTOM_TEXT = `
-La paz de Dios que sobrepasa todo entendimiento guardará tu corazón y tus pensamientos en Cristo Jesús. No temas porque Yo estoy contigo, no desmayes porque Yo soy tu Dios que te esfuerzo. Todo lo puedo en Cristo que me fortalece, porque el Señor es mi luz y mi salvación, ¿de quién temeré?
-
-Clama a mí y Yo te responderé, busca y hallarás, llama y se te abrirá. Orad sin cesar y en todo dad gracias, porque esta es la voluntad de Dios. El que permanece en Cristo lleva fruto, porque separados de Él nada podemos hacer.
-
-El sabio teme al Señor y se aparta del mal, porque el principio de la sabiduría es el temor de Dios. Transformaos por medio de la renovación de vuestro entendimiento para que comprobéis la buena voluntad de Dios. Si alguno está en Cristo nueva criatura es, las cosas viejas pasaron, todas son hechas nuevas.
-
-Porque Yo sé los planes que tengo para vosotros, planes de paz y no de mal, para daros un futuro y una esperanza. Los que esperan en el Señor renovarán sus fuerzas, correrán y no se cansarán, caminarán y no se fatigarán. Nada podrá separarnos del amor de Dios que es en Cristo Jesús Señor nuestro.
-
-Dios es amor, y el que permanece en amor permanece en Dios. Y Él enjugará toda lágrima de los ojos, y ya no habrá muerte, ni llanto, ni dolor. La palabra del Señor permanece para siempre y su verdad no tiene fin.La paz de Dios que sobrepasa todo entendimiento guardará tu corazón y tus pensamientos en Cristo Jesús. No temas porque Yo estoy contigo, no desmayes porque Yo soy tu Dios que te esfuerzo. Todo lo puedo en Cristo que me fortalece, porque el Señor es mi luz y mi salvación, ¿de quién temeré?
-
-Clama a mí y Yo te responderé, busca y hallarás, llama y se te abrirá. Orad sin cesar y en todo dad gracias, porque esta es la voluntad de Dios. El que permanece en Cristo lleva fruto, porque separados de Él nada podemos hacer.
-
-El sabio teme al Señor y se aparta del mal, porque el principio de la sabiduría es el temor de Dios. Transformaos por medio de la renovación de vuestro entendimiento para que comprobéis la buena voluntad de Dios. Si alguno está en Cristo nueva criatura es, las cosas viejas pasaron, todas son hechas nuevas.
-
-Porque Yo sé los planes que tengo para vosotros, planes de paz y no de mal, para daros un futuro y una esperanza. Los que esperan en el Señor renovarán sus fuerzas, correrán y no se cansarán, caminarán y no se fatigarán. Nada podrá separarnos del amor de Dios que es en Cristo Jesús Señor nuestro.
-
-Dios es amor, y el que permanece en amor permanece en Dios. Y Él enjugará toda lágrima de los ojos, y ya no habrá muerte, ni llanto, ni dolor. La palabra del Señor permanece para siempre y su verdad no tiene fin.La paz de Dios que sobrepasa todo entendimiento guardará tu corazón y tus pensamientos en Cristo Jesús. No temas porque Yo estoy contigo, no desmayes porque Yo soy tu Dios que te esfuerzo. Todo lo puedo en Cristo que me fortalece, porque el Señor es mi luz y mi salvación, ¿de quién temeré?
-
-Clama a mí y Yo te responderé, busca y hallarás, llama y se te abrirá. Orad sin cesar y en todo dad gracias, porque esta es la voluntad de Dios. El que permanece en Cristo lleva fruto, porque separados de Él nada podemos hacer.
-
-El sabio teme al Señor y se aparta del mal, porque el principio de la sabiduría es el temor de Dios. Transformaos por medio de la renovación de vuestro entendimiento para que comprobéis la buena voluntad de Dios. Si alguno está en Cristo nueva criatura es, las cosas viejas pasaron, todas son hechas nuevas.
-
-Porque Yo sé los planes que tengo para vosotros, planes de paz y no de mal, para daros un futuro y una esperanza. Los que esperan en el Señor renovarán sus fuerzas, correrán y no se cansarán, caminarán y no se fatigarán. Nada podrá separarnos del amor de Dios que es en Cristo Jesús Señor nuestro.
-
-Dios es amor, y el que permanece en amor permanece en Dios.
+dios TE AMAAAAAAAAAAAAAAAAAAAAAAAAA SI QUE SI 
 `;
 
 
@@ -356,8 +347,89 @@ else{
         result += "\n";
 
     }
+pctx.clearRect(
+    0,
+    0,
+    portraitCanvas.width,
+    portraitCanvas.height
+);
 
-    portrait.textContent = result;
+pctx.textBaseline = "top";
+
+let drawIndex = 0;
+
+const scale =
+Math.min(
+    portraitCanvas.width / canvas.width,
+    portraitCanvas.height / canvas.height
+);
+
+for(let y = 0; y < canvas.height; y += 4){
+
+    for(let x = 0; x < canvas.width; x += 4){
+
+        const index =
+        (y * canvas.width + x) * 4;
+
+        const r = pixels[index];
+        const g = pixels[index + 1];
+        const b = pixels[index + 2];
+
+        const brightness =
+        (r + g + b) / 3;
+
+        if(brightness < 20){
+            continue;
+        }
+
+        const letter =
+        CUSTOM_TEXT[
+            drawIndex++
+            %
+            CUSTOM_TEXT.length
+        ];
+
+        const px =
+        x * scale;
+
+        const py =
+        y * scale;
+
+        const shimmer =
+        (
+            Math.sin(
+                Date.now()*0.003
+                +
+                x*0.05
+            )
+            +1
+        ) * 0.5;
+
+        pctx.fillStyle =
+        `rgb(
+            ${180 + shimmer*75},
+            ${100 + shimmer*30},
+            255
+        )`;
+
+        pctx.shadowColor =
+        "#b266ff";
+
+        pctx.shadowBlur =
+        10;
+
+        pctx.font =
+        `${Math.max(5,scale*3)}px monospace`;
+
+        pctx.fillText(
+            letter,
+            px,
+            py
+        );
+
+    }
+
+}
 
 }
 
