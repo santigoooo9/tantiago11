@@ -67,12 +67,12 @@ canvas{
     white-space:pre;
 
     font-size:clamp(
-2px,
+1.8px,
 0.42vw,
 5px
 );
 
-    line-height:4px;
+    line-height:1.8px;
 
     letter-spacing:0px;
 
@@ -195,7 +195,7 @@ imageInput.addEventListener("change", function(event){
             evitar millones de letras.
         */
 
-        const width = 450;
+        const width = 700;
 
         const height =
         img.height * (width / img.width);
@@ -261,11 +261,7 @@ function generateTextPortrait(){
     let result = "";
     let textIndex = 0;
 
-    for(
-        let y = 0;
-        y < canvas.height;
-        y += 2
-    ){
+    for(let y = 0; y < canvas.height; y += 1){
 
         for(
             let x = 0;
@@ -296,20 +292,50 @@ function generateTextPortrait(){
 
             brightness *= 255;
 
-            if(brightness > 18){
+            if(brightness < 20){
 
-                result +=
-                CUSTOM_TEXT[
-                    textIndex++
-                    %
-                    CUSTOM_TEXT.length
-                ];
+    result += " ";
 
-            }else{
+}
+else if(brightness < 60){
 
-                result += " ";
+    result +=
+    CUSTOM_TEXT[
+        textIndex++
+        %
+        CUSTOM_TEXT.length
+    ];
 
-            }
+    result += " ";
+
+}
+else if(brightness < 120){
+
+    result +=
+    CUSTOM_TEXT[
+        textIndex++
+        %
+        CUSTOM_TEXT.length
+    ];
+
+}
+else{
+
+    result +=
+    CUSTOM_TEXT[
+        textIndex++
+        %
+        CUSTOM_TEXT.length
+    ];
+
+    result +=
+    CUSTOM_TEXT[
+        textIndex++
+        %
+        CUSTOM_TEXT.length
+    ];
+
+} 
 
         }
 
